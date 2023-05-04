@@ -1,7 +1,7 @@
 import scrapy
 import numpy as np
 import pandas as pd
-from datetime import datetime
+from datetime import datetime, timedelta
 from SearchScraper.items import SearchscraperItem
 from SearchScraper.cleanser import cleansing
 import re
@@ -14,13 +14,16 @@ class SearchSpiderSpider(scrapy.Spider):
     handle_httpstatus_list = [302, 403]
 
     keyword = '하이닉스'
-    start_date = (2020, 4, 1)
-    end_date = (2023, 4, 25)
+    today = datetime.now().date()
+    yesterday = today - timedelta(days=1)
+    today, yesterday
+    # start_date = (2023, 4, 25)
+    # end_date = (2023, 5, 3)
 
     URL_FORMAT = 'https://search.naver.com/search.naver?where=news&sm=tab_pge&query={}&sort=0&photo=0&field=0&pd=3&ds={}&de={}&start={}'
 
     def start_requests(self):
-        dates = pd.date_range(end=datetime(*self.end_date), start=datetime(*self.start_date)).strftime('%Y.%m.%d').tolist()
+        dates = pd.date_range(end=self.today, start=self.yesterday).strftime('%Y.%m.%d').tolist()
         for date in dates:
             target_url = self.URL_FORMAT.format(
                             self.keyword, 
@@ -39,7 +42,7 @@ class SearchSpiderSpider(scrapy.Spider):
         for url in urls:
             yield scrapy.Request(url=url, callback=self.parse, meta={**response.meta})
 
-        with open('./url_list.txt', 'a') as f:
+        with open('./test_url_list.txt', 'a') as f:
             for url in urls:
                 f.write(url+'\n')
 
